@@ -254,16 +254,23 @@ namespace MsCrmTools.SiteMapEditor.AppCode
 
             foreach (XmlNode childNode in xmlNode.ChildNodes)
             {
-                if (childNode.NodeType != XmlNodeType.Comment)
+                if (childNode.NodeType == XmlNodeType.Element)
                 {
                     AddTreeViewNode(node, childNode, form);
                 }
-                else
+                else if(childNode.NodeType == XmlNodeType.Comment)
                 {
+                    // A comment probably contains one or more disabled elements.
+                    // Try and extract them.
                     var commentDoc = new XmlDocument();
-                    commentDoc.LoadXml(childNode.InnerText);
-
-                    AddTreeViewNode(node, commentDoc.DocumentElement, form, true);
+                    commentDoc.LoadXml(@"<commentroot>"+childNode.InnerText+"</commentroot>");
+                    foreach (XmlNode element in commentDoc.DocumentElement.ChildNodes)
+                    {
+                        if (element.NodeType == XmlNodeType.Element)
+                        {
+                            AddTreeViewNode(node, element, form, true);
+                        }
+                    }
                 }
             }
         }
